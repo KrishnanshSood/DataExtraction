@@ -1,0 +1,19 @@
+On 12th May, Harjit Kaur (Passport: M1234567) sent a communication from email harjit.k@example.com.
+They cited Section 34 of Customs act, 1966 as a reference for their application. The place of residence: Flat No 201, Shree Apartments, Near GPO, M.G. Road, Bandra, Mumbai, Mumbai Suburban, Maharashtra, India - 400050. Financial info includes PAN AAAPL1234C and GSTIN 27AAECS1234F1Z1.
+Phone: +91-9876543210, Banking: IFSC - HDFC0001234, Account - 50100123456789.
+
+On 12th May, Priya Rao (Passport: Z9876543) sent a communication from email priya.rao@example.in.
+They cited Section 46(A) of amendment under IPC as a reference for their application. The place of residence: House 45B, Skyline Towers, PO Bhowanipore, Elgin Street, Ballygunge, Kolkata, Kolkata, West Bengal, India - 700020. Financial info includes PAN ABCDE1234F and GSTIN 07AABCU9603R1ZV.
+Phone: +91-9988776655, Banking: IFSC - SBIN0005678, Account - 10198765432100.
+
+On 12th May, Rajeev Malhotra (Passport: H2345678) sent a communication from email rajeev123@mail.in.
+They cited Section 12B of the Banking Regulation Act, 1949 as a reference for their application. The place of residence: Bungalow 5, Palm Residency, Near Head Post Office, Civil Lines, Ajmer, Ajmer, Rajasthan, India - 305001. Financial info includes PAN PQWER6789T and GSTIN 19AACCM9910C1ZP.
+Phone: +91-9123456789, Banking: IFSC - ICIC0004321, Account - 20212345678901.
+
+On 12th May, Anil Kumar (Passport: K4567890) sent a communication from email anilk@xyz.co.in.
+They cited Section 80C under the Income Tax Act as a reference for their application. The place of residence: H.No 111, Green Heights, Opp. GPO, Rajbhavan Road, Somajiguda, Hyderabad, Hyderabad, Telangana, India - 500082. Financial info includes PAN LMNOP3456Z and GSTIN 33AAACB5345M1Z2.
+Phone: +91-9001122334, Banking: IFSC - PUNB0123456, Account - 30111222333344.
+
+On 12th May, Sonal Singh (Passport: L3456789) sent a communication from email sonal.singh@gmail.com.
+They cited Section 7 of Foreign Exchange Management Act, 1999 as a reference for their application. The place of residence: C-303, Lotus Court, Near GPO, F.C. Road, Shivajinagar, Pune, Pune, Maharashtra, India - 411005. Financial info includes PAN ASDFG2345Q and GSTIN 29AAACS8565D1Z7.
+Phone: +91-8899776655, Banking: IFSC - BARB0ABCDEF, Account - 40199887766554.
