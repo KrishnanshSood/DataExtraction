@@ -5,7 +5,8 @@ from extractors.logger import get_logger
 logger = get_logger("EmailExtractor")
 
 EMAIL_REGEX = re.compile(
-    r'\b[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\b'
+    r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b',
+    re.IGNORECASE
 )
 
 # Acceptable top-level domains
@@ -21,10 +22,8 @@ def is_valid_email(email: str) -> bool:
 
 def extract_emails(text: str) -> List[str]:
     logger.info("Extracting email addresses...")
-    emails = re.findall(EMAIL_REGEX, text)
-    logger.debug(f"Raw emails found: {emails}")
-
-    valid_emails = {email.lower() for email in emails if is_valid_email(email)}
+    matches = EMAIL_REGEX.findall(text)
+    valid_emails = {email.strip() for email in matches}
     logger.info(f"Valid emails extracted: {len(valid_emails)}")
-
     return sorted(valid_emails)
+
