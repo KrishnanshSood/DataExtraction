@@ -1,53 +1,123 @@
+import requests
+import json
 import re
+import ast
 
-# More robust regex patterns for Indian address components
-ADDRESS_PATTERNS = {
-    "house_number": r"\b(?:Flat\s*No\.?|House\s*No\.?|H\.?No\.?|Plot\s*No\.?|Bungalow|Door\s*No\.?)\s*\w+",
-    "building": r"[A-Z][a-zA-Z0-9\s]*\s+(?:Towers|Residency|Apartments|Court|Heights|Block|Building|Complex)",
-    "landmark": r"(?:Near|Opp\.?|Opposite|Behind|Beside)\s+[A-Z][\w\s&().,-]+",
-    "street": r"\b[\w\s]*\s+(?:Road|Street|Lane|Marg|Main Road)\b",
-    "locality": r"\b(?:Bandra|Ballygunge|Shivajinagar|Koramangala|Civil Lines|Rajbhavan Road|Elgin Street|F\.?C\.? Road|Shanumangala|Bidadi|Hobli)\b",
-    "city": r"\b(?:Mumbai|Kolkata|Ajmer|Hyderabad|Pune|Chennai|Delhi|Bangalore|BENGALURU|Ahmedabad|Jaipur|Ramanagara)\b",
-    "district": r"\b(?:Mumbai Suburban|Kolkata|Ajmer|Hyderabad|Pune|South Delhi|North Delhi|Ramanagara|BENGALURU URBAN)\b",
-    "state": r"\b(?:Maharashtra|West Bengal|Rajasthan|Telangana|Delhi|Tamil Nadu|Karnataka|Gujarat)\b",
-    "pincode": r"\b\d{6}\b",
-    "country": r"\bIndia\b"
-}
+LLAMA_API_URL = "http://localhost:11434/api/generate"
+LLAMA_MODEL = "llama3"
 
-def extract_address_components(address: str) -> dict:
-    """Extracts structured components from a single address string."""
-    return {
-        key: (
-            re.search(pattern, address, re.IGNORECASE).group(0)
-            if re.search(pattern, address, re.IGNORECASE)
-            else "-"
-        )
-        for key, pattern in ADDRESS_PATTERNS.items()
-    }
+# Desired Indian address structure
+ADDRESS_FIELDS = [
+    "flat_or_house_number",
+    "building_or_post_office",
+    "street",
+    "area",
+    "town_or_city",
+    "district",
+    "state",
+    "country",
+    "pincode"
+]
 
-def extract_all_addresses(text: str):
-    """
-    Extracts possible address blocks using lines that:
-    - contain a comma (common in addresses)
-    - contain a valid 6-digit pincode
-    """
-    candidate_lines = text.splitlines()
-    address_blocks = []
+def call_llama_address_parser(text: str) -> dict:
+    """Call local LLaMA model to parse address into structured Indian format."""
+    prompt = f"""
+You are an expert in Indian address extraction.
 
-    for line in candidate_lines:
-        if ',' in line and re.search(ADDRESS_PATTERNS["pincode"], line):
-            address_blocks.append(line.strip())
+From the following unstructured text, extract an Indian address and return it as a JSON object with these fields:
+- flat_or_house_number
+- building_or_post_office
+- street
+- area
+- town_or_city
+- district
+- state
+- country
+- pincode
 
-    return [extract_address_components(block) for block in address_blocks]
+If a field is not found, return it as "-". Respond ONLY with valid compact JSON. No explanations.
 
-# Optional standalone test
+Text:
+\"\"\"{text}\"\"\"
+"""
+
+    response = requests.post(LLAMA_API_URL, json={
+        "model": LLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False
+    })
+
+    if response.status_code != 200:
+        print(f"❌ Error: {response.status_code}")
+        return {key: "-" for key in ADDRESS_FIELDS}
+
+    raw_response = response.json().get("response", "").strip()
+
+    # Attempt strict JSON parsing
+    try:
+        parsed = json.loads(raw_response)
+        if isinstance(parsed, dict):
+            return {k: parsed.get(k, "-") for k in ADDRESS_FIELDS}
+    except Exception:
+        pass
+
+    # Fallback: try Python dict literal (less strict)
+    try:
+        parsed = ast.literal_eval(raw_response)
+        if isinstance(parsed, dict):
+            return {k: parsed.get(k, "-") for k in ADDRESS_FIELDS}
+    except Exception:
+        pass
+
+    print("⚠️ Could not parse model response:")
+    print(raw_response)
+    return {key: "-" for key in ADDRESS_FIELDS}
+
+
+def get_address_blocks(text: str) -> list:
+    """Heuristically identify address-like chunks from raw text."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    blocks = []
+    buffer = []
+
+    for line in lines:
+        buffer.append(line)
+        joined = " ".join(buffer)
+
+        if re.search(r"\b\d{6}\b", joined) or re.search(r"\b(distt|district|state|pin|po|ps|city|village)\b", joined, re.IGNORECASE):
+            blocks.append(joined)
+            buffer.clear()
+        elif len(buffer) > 3:
+            buffer.clear()
+
+    return blocks
+
+
+def extract_all_addresses(text: str) -> list:
+    """Main function to extract structured addresses using LLaMA."""
+    raw_blocks = get_address_blocks(text)
+    results = []
+
+    for block in raw_blocks:
+        parsed = call_llama_address_parser(block)
+        results.append({
+            "raw_block": block,
+            "components": parsed
+        })
+
+    return results
+
+
+# 🧪 Optional CLI test
 if __name__ == "__main__":
     with open("legal_records.txt", "r", encoding="utf-8") as f:
         content = f.read()
 
-    structured_addresses = extract_all_addresses(content)
+    addresses = extract_all_addresses(content)
 
-    for i, addr in enumerate(structured_addresses, 1):
-        print(f"\n📍 Address Block {i}")
-        for k, v in addr.items():
-            print(f"  {k}: {v}")
+    for i, addr in enumerate(addresses, 1):
+        print(f"\n🏷️ Address Block {i}")
+        print(f"Raw: {addr['raw_block']}")
+        print("📍 Address Components Found:")
+        for key in ADDRESS_FIELDS:
+            print(f"- {key}: {addr['components'].get(key, '-')}")

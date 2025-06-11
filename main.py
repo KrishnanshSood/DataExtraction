@@ -1,7 +1,7 @@
 import os
 from extractors.logger import get_logger
 from extractors.acts_sections import extract_acts_sections
-from extractors.names import extract_names
+from extractors.names import extract_names  # 🔹 Robust Indian names via ai4bharat/IndicNER
 from extractors.phone_numbers import extract_phone_numbers
 from extractors.email_ids import extract_emails
 from extractors.pan_gstin import extract_pan_and_gstin
@@ -25,10 +25,28 @@ def print_results(title: str, items: list):
     for item in items:
         print("-", item, flush=True)
 
-def print_address_components(address: dict):
-    print("\n📍 Address Components Found:")
-    for key, value in address.items():
-        print(f"- {key}: {value}")
+def print_address_components(address):
+    print("📍 Address Components Found:")
+
+    components = address["components"] if isinstance(address, dict) and "components" in address else {}
+
+    if not isinstance(components, dict):
+        print("⚠️ Warning: Invalid address component structure")
+        print("Raw response:", components)
+        return
+
+    for key in [
+        "flat_or_house_number",
+        "building_or_post_office",
+        "street",
+        "area",
+        "town_or_city",
+        "district",
+        "state",
+        "country",
+        "pincode"
+    ]:
+        print(f"- {key}: {components.get(key, '-')}")
 
 def process_file(filepath: str):
     logger.info(f"📂 Processing: {filepath}")
@@ -39,12 +57,13 @@ def process_file(filepath: str):
 
     print(f"\n{'=' * 40}\n📄 File: {os.path.basename(filepath)}\n{'=' * 40}")
 
-    acts_sections = extract_acts_sections(text)
-    print_results("📘 Acts & Sections Found:", acts_sections)
+    # Extraction calls
+    print_results("📘 Acts & Sections Found:", extract_acts_sections(text))
 
     people, orgs = extract_names(text)
     print_results("🧑 People Found:", people)
     print_results("🏢 Organizations Found:", orgs)
+
 
     mobiles, landlines = extract_phone_numbers(text)
     print_results("📱 Mobile Numbers Found:", mobiles)
@@ -62,7 +81,7 @@ def process_file(filepath: str):
     print_results("🏦 Account Numbers Found:", accounts)
     print_results("🏦 IFSC Codes Found:", ifscs)
 
-    addresses = extract_all_addresses(text)  # ✅ Using original address.py logic
+    addresses = extract_all_addresses(text)
     if addresses:
         for i, address in enumerate(addresses, 1):
             print(f"\n🏷️ Address Block {i}")
